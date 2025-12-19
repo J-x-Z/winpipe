@@ -1,0 +1,28 @@
+[package]
+name = "winpipe"
+version = "0.1.0"
+edition = "2021"
+description = "Windows-native Waypipe implementation for Wayland protocol forwarding"
+authors = ["J-x-Z"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Binary parsing
+bytes = "1"
+byteorder = "1"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Compression
+lz4_flex = "0.11"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
