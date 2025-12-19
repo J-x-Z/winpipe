@@ -1,21 +1,21 @@
 # Winpipe
 
-Windows-native Waypipe implementation - Wayland protocol proxy for WSL applications.
+Windows 端的 Wayland 协议处理器（实验性项目）
 
-## Features
+## 当前状态
 
-- 🔌 **Wayland Compositor** - Implements core Wayland protocol
-- 📦 **LZ4 Compression** - Efficient data transfer
-- 🔄 **Mirror Buffers** - Delta sync for surface updates
-- 🌐 **TCP Transport** - Cross-OS communication
+⚠️ **这是一个实验性项目：**
 
-## Architecture
+- ✅ 实现了基础的 Wayland 协议解析
+- ✅ 可以接受 WSL Wayland 应用的连接
+- ✅ 支持 wl_display, wl_registry, wl_compositor, xdg_shell 等协议
+- ❌ **无法传递共享内存**（wl_shm 需要 Unix 文件描述符，TCP 不支持）
 
-```
-WSL Wayland App → socat → TCP:9998 → winpipe (protocol) → win-way (display)
-```
+## 说明
 
-## Installation
+本项目**不是 waypipe 的移植**，只是参考了 waypipe 的概念，代码完全从零编写。
+
+## 安装
 
 ```powershell
 git clone https://github.com/J-x-Z/winpipe.git
@@ -23,66 +23,34 @@ cd winpipe
 cargo build --release
 ```
 
-## Usage
+## 使用方法
 
-### Windows Side
 ```powershell
 cargo run --release --bin winpipe server --port 9998
 ```
 
-### WSL Side
+### WSL 端
+
 ```bash
-# Install dependencies
-sudo apt install socat
-
-# Connect to winpipe
 WIN_IP=$(ip route | grep default | cut -d' ' -f3)
-rm -f /tmp/wayland-wp
 socat UNIX-LISTEN:/tmp/wayland-wp,fork TCP:$WIN_IP:9998 &
-
-# Run Wayland application
 export WAYLAND_DISPLAY=/tmp/wayland-wp
-foot  # or any Wayland app
+foot  # 可以连接，但因 shm 限制无法显示
 ```
 
-## CLI Options
+## 已知限制
 
-```
-winpipe server [OPTIONS]
-  -p, --port <PORT>    TCP port to listen on (default: 9999)
-  -d, --debug          Enable debug logging
-```
+- **无法传递 fd**：Wayland 的 wl_shm 使用 Unix 文件描述符传递共享内存，TCP 无法实现这一功能
+- **无输入事件**：键盘鼠标事件未实现
 
-## Implemented Protocols
-
-| Interface | Version | Status |
-|-----------|---------|--------|
-| wl_display | 1 | ✅ |
-| wl_registry | 1 | ✅ |
-| wl_compositor | 5 | ✅ |
-| wl_shm | 1 | ⚠️ (no fd passing) |
-| wl_output | 4 | ✅ |
-| wl_seat | 8 | ⚠️ |
-| xdg_wm_base | 5 | ✅ |
-| xdg_surface | 5 | ✅ |
-| xdg_toplevel | 5 | ✅ |
-
-## Known Limitations
-
-- **No fd passing over TCP** - wl_shm buffers require file descriptors which cannot be passed over TCP. Use waypipe on WSL side for full support.
-- **No input events** - Keyboard/mouse events not yet implemented
-
-## Requirements
+## 系统要求
 
 - Windows 10+
 - Rust 1.70+
 - WSL2 with socat
 
-## Related Projects
-
-- [win-way](https://github.com/J-x-Z/win-way) - GPU renderer for displaying Wayland surfaces
-- [waypipe](https://gitlab.freedesktop.org/mstoeckl/waypipe) - Original Wayland network proxy
-
-## License
+## 许可证
 
 MIT
+
+（本项目未使用任何 waypipe 代码，仅参考其概念）
